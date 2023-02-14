@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c := client.New(client.Config{URL: args[0]})
+		workers, err := cmd.Flags().GetInt("workers")
+		if err != nil {
+			panic(err)
+		}
+		duration, err := cmd.Flags().GetFloat64("duration")
+		if err != nil {
+			panic(err)
+		}
+		c := client.New(client.Config{URL: args[0], Count: workers, Duration: duration})
 		c.Call()
 	},
 }
@@ -44,17 +52,19 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
+	clientCmd.PersistentFlags().IntP("workers", "n", 128, "The number of concurrent workers making http requests")
+	clientCmd.PersistentFlags().Float64P("duration", "t", 1.0, "A floating point number of seconds during which to make requests")
 	// clientCmd.PersistentFlags().String("foo", "", "A help for foo")
-	clientCmd.PersistentFlags().String("listen-addr", "0.0.0.0", "The address to which to bind.")
-	clientCmd.PersistentFlags().Int64P("listen-port", "p", 8443, "The port on which to listen.")
-	clientCmd.PersistentFlags().String("cert", "/etc/ssl/promidc/tls.crt", "The path to the certificate of the TLS server.")
-	clientCmd.PersistentFlags().String("key", "/etc/ssl/promidc/tls.key", "The path to the private key of the TLS server.")
-	clientCmd.PersistentFlags().String("oidc-endpoint", "https://localhost", "The OIDC endpoint for token inspection.")
-	clientCmd.PersistentFlags().String("datasource", "prometheus", "The type of the datasource. Currently 'prometheus' and 'loki' are supported.")
-	clientCmd.PersistentFlags().String("datasource-url", "http://localhost:9090", "The URL of the datasource server.")
-	clientCmd.PersistentFlags().Bool("serve-insecure", false, "This option disables TLS on the server.")
-	clientCmd.PersistentFlags().Bool("passthrough", false, "Authorize all requests. Use only for debugging.")
-	clientCmd.PersistentFlags().BoolP("insecure-skip-verify", "k", false, "This option skips certificate verification on prometheus and the authorization server.")
+	// clientCmd.PersistentFlags().String("listen-addr", "0.0.0.0", "The address to which to bind.")
+	// clientCmd.PersistentFlags().Int64P("listen-port", "p", 8443, "The port on which to listen.")
+	// clientCmd.PersistentFlags().String("cert", "/etc/ssl/promidc/tls.crt", "The path to the certificate of the TLS server.")
+	// clientCmd.PersistentFlags().String("key", "/etc/ssl/promidc/tls.key", "The path to the private key of the TLS server.")
+	// clientCmd.PersistentFlags().String("oidc-endpoint", "https://localhost", "The OIDC endpoint for token inspection.")
+	// clientCmd.PersistentFlags().String("datasource", "prometheus", "The type of the datasource. Currently 'prometheus' and 'loki' are supported.")
+	// clientCmd.PersistentFlags().String("datasource-url", "http://localhost:9090", "The URL of the datasource server.")
+	// clientCmd.PersistentFlags().Bool("serve-insecure", false, "This option disables TLS on the server.")
+	// clientCmd.PersistentFlags().Bool("passthrough", false, "Authorize all requests. Use only for debugging.")
+	// clientCmd.PersistentFlags().BoolP("insecure-skip-verify", "k", false, "This option skips certificate verification on prometheus and the authorization server.")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

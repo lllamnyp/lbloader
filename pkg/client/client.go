@@ -1,26 +1,28 @@
 package client
 
 import (
-	"fmt"
-	"os"
 	"sync"
+	"time"
 
 	"github.com/valyala/fasthttp"
 )
 
 // New takes a Config and returns a client pointer
 func New(c Config) Client {
-	return &client{URL: c.URL, count: 10}
+	return &client{url: c.URL, count: c.Count, duration: time.Duration(c.Duration * float64(time.Second))}
 }
 
 type client struct {
-	URL   string
-	count int
+	url      string
+	count    int
+	duration time.Duration
 }
 
 // Config is a struct containing the configuration parameters of a client
 type Config struct {
-	URL string
+	URL      string
+	Count    int
+	Duration float64
 }
 
 // Client is an interface
@@ -30,7 +32,7 @@ type Client interface {
 
 func (c *client) Call() {
 	url := fasthttp.AcquireURI()
-	url.Parse(nil, []byte(c.URL))
+	url.Parse(nil, []byte(c.url))
 
 	hc := &fasthttp.HostClient{
 		Addr:  string(url.Host()), // The host address and port must be set explicitly
@@ -39,7 +41,7 @@ func (c *client) Call() {
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < c.count; i++ {
+	for worker, end := 0, time.Now().Add(c.duration); worker < c.count; worker++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -48,13 +50,10 @@ func (c *client) Call() {
 
 			req.Header.SetMethod(fasthttp.MethodGet)
 			resp := fasthttp.AcquireResponse()
-			err := hc.Do(req, resp)
-			fasthttp.ReleaseRequest(req)
-			if err == nil {
-				fmt.Printf("Response: %s\n", resp.Body())
-			} else {
-				fmt.Fprintf(os.Stderr, "Connection error: %v\n", err)
+			for i := 0; i&0x0f != 0 || !time.Now().After(end); i++ {
+				hc.Do(req, resp)
 			}
+			fasthttp.ReleaseRequest(req)
 			fasthttp.ReleaseResponse(resp)
 		}()
 	}
