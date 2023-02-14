@@ -1,0 +1,12 @@
+cmd
+.git
+.gitignore
+go.mod
+go.sum
+LICENSE
+main.go
+pkg
+README.md
+.dockerignore
+.docker
+.private

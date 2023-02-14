@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: lbloader
+    app.kubernetes.io/name: server
+  name: lbloader
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: lbloader
+      app.kubernetes.io/name: server
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/instance: lbloader
+        app.kubernetes.io/name: server
+    spec:
+      containers:
+      - args:
+        - server
+        image: lllamnyp/lbloader
+        imagePullPolicy: IfNotPresent
+        name: server
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
